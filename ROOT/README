@@ -1,0 +1,17 @@
+to run:
+
+source setup.sh
+make
+./myexample.exe --NEvents 10
+
+to make changes to the physics process, see
+
+http://home.thep.lu.se/~torbjorn/pythia81html/Welcome.html
+
+and change
+
+myexample.C
+
+to make changes to the analysis and the output file, change
+
+myexampleAnalysis.cc
