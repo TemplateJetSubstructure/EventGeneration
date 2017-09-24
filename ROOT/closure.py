@@ -79,33 +79,23 @@ for i in range(mytree.GetEntries()):
     pass
 
 nreps = 5
+def fillrandom(templ, pT, *histos):
+    for _ in range(nreps):
+        random_mass = templ[pThisto.GetXaxis().FindBin(pT)].GetRandom()
+        for h in histos:
+            h.Fill(random_mass)
 for i in range(mytree.GetEntries()):
     mytree.GetEntry(i)
     if (mytree.NJetsFilledSmallR > 0):
         if (mytree.Jsmalltype[0]==21):
-            for j in range(nreps):
-                random_mass = templates_g[pThisto.GetXaxis().FindBin(mytree.JsmallPt[0])].GetRandom()
-                masshisto_built.Fill(random_mass)
-                masshistog_built.Fill(random_mass)
-                pass
+            fillrandom(templates_g, mytree.JsmallPt[0], masshisto_built, masshistog_built)
         else:
-            for j in range(nreps):
-                random_mass = templates_q[pThisto.GetXaxis().FindBin(mytree.JsmallPt[0])].GetRandom()
-                masshisto_built.Fill(random_mass)
-                masshistoq_built.Fill(random_mass)
-                pass
-            pass
+            fillrandom(templates_q, mytree.JsmallPt[0], masshisto_built, masshistoq_built)
     if (mytree.NJetsFilledSmallR > 1):
         if (mytree.Jsmalltype[1]==21):
-            for j in range(nreps):
-                random_mass = templates_g[pThisto.GetXaxis().FindBin(mytree.JsmallPt[1])].GetRandom()
-                masshisto_built2.Fill(random_mass)
-                masshistog_built2.Fill(random_mass)
+            fillrandom(templates_g, mytree.JsmallPt[1], masshisto_built2, masshistog_built2)
         else:
-            for j in range(nreps):
-                random_mass = templates_q[pThisto.GetXaxis().FindBin(mytree.JsmallPt[1])].GetRandom()
-                masshisto_built2.Fill(random_mass)
-                masshistoq_built2.Fill(random_mass)
+            fillrandom(templates_q, mytree.JsmallPt[1], masshisto_built2, masshistoq_built2)
     pass
 
 def output(masshisto, masshistoq, masshistog, masshisto_built, masshistoq_built, masshistog_built, pThisto, suffix):
