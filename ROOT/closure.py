@@ -26,6 +26,7 @@ myfile = TFile("test.root")
 mytree = myfile.Get("EventTree")
 
 pThisto = TH1F("","",20,500,1000)
+pThisto2 = TH1F("","",20,500,1000)
 pThistoq = TH1F("","",20,500,1000)
 pThistog = TH1F("","",20,500,1000)
 
@@ -33,7 +34,17 @@ masshisto = TH1D("","",20,0,300)
 masshistoq = TH1D("","",20,0,300)
 masshistog = TH1D("","",20,0,300)
 
+masshisto2 = TH1D("","",20,0,300)
+masshistoq2 = TH1D("","",20,0,300)
+masshistog2 = TH1D("","",20,0,300)
+
 masshisto_built = TH1D("","",20,0,300)
+masshistoq_built = TH1D("","",20,0,300)
+masshistog_built = TH1D("","",20,0,300)
+
+masshisto_built2 = TH1D("","",20,0,300)
+masshistoq_built2 = TH1D("","",20,0,300)
+masshistog_built2 = TH1D("","",20,0,300)
 
 template_q = TH2D("","",20,500,1000,20,0,300)
 template_g = TH2D("","",20,500,1000,20,0,300)
@@ -58,6 +69,13 @@ for i in range(mytree.GetEntries()):
             templates_q[pThisto.GetXaxis().FindBin(mytree.JsmallPt[0])].Fill(mytree.JsmallM[0])
             pass
         pass
+    if (mytree.NJetsFilledSmallR > 1):
+        pThisto2.Fill(mytree.JsmallPt[1])
+        masshisto2.Fill(mytree.JsmallM[1])
+        if (mytree.Jsmalltype[1]==21):
+            masshistog2.Fill(mytree.JsmallM[1])
+        else:
+            masshistoq2.Fill(mytree.JsmallM[1])
     pass
 
 nreps = 5
@@ -66,56 +84,94 @@ for i in range(mytree.GetEntries()):
     if (mytree.NJetsFilledSmallR > 0):
         if (mytree.Jsmalltype[0]==21):
             for j in range(nreps):
-                masshisto_built.Fill(templates_g[pThisto.GetXaxis().FindBin(mytree.JsmallPt[0])].GetRandom())
+                random_mass = templates_g[pThisto.GetXaxis().FindBin(mytree.JsmallPt[0])].GetRandom()
+                masshisto_built.Fill(random_mass)
+                masshistog_built.Fill(random_mass)
                 pass
         else:
             for j in range(nreps):
-                masshisto_built.Fill(templates_q[pThisto.GetXaxis().FindBin(mytree.JsmallPt[0])].GetRandom())
+                random_mass = templates_q[pThisto.GetXaxis().FindBin(mytree.JsmallPt[0])].GetRandom()
+                masshisto_built.Fill(random_mass)
+                masshistoq_built.Fill(random_mass)
                 pass
             pass
+    if (mytree.NJetsFilledSmallR > 1):
+        if (mytree.Jsmalltype[1]==21):
+            for j in range(nreps):
+                random_mass = templates_g[pThisto.GetXaxis().FindBin(mytree.JsmallPt[1])].GetRandom()
+                masshisto_built2.Fill(random_mass)
+                masshistog_built2.Fill(random_mass)
+        else:
+            for j in range(nreps):
+                random_mass = templates_q[pThisto.GetXaxis().FindBin(mytree.JsmallPt[1])].GetRandom()
+                masshisto_built2.Fill(random_mass)
+                masshistoq_built2.Fill(random_mass)
     pass
-        
-c = TCanvas("a","a",500,500)
-gStyle.SetOptStat(0)
-gPad.SetLeftMargin(0.15)
-gPad.SetTopMargin(0.05)
-masshisto.Draw()
-masshisto.GetYaxis().SetTitle("arbitrary units")
-masshisto.GetXaxis().SetTitle("m_{MMDT} [GeV]")
-masshisto.GetYaxis().SetTitleOffset(1.8)
-masshisto.GetXaxis().SetTitleOffset(1.3)
-masshisto.SetLineColor(1)
-masshisto.GetYaxis().SetRangeUser(0,masshisto.GetMaximum()*1.2)
 
-masshistoq.SetLineColor(2)
-masshistoq.SetLineStyle(3)
-masshistoq.Draw("same")
+def output(masshisto, masshistoq, masshistog, masshisto_built, masshistoq_built, masshistog_built, pThisto, suffix):
+    c = TCanvas("a","a",500,500)
+    gStyle.SetOptStat(0)
+    gPad.SetLeftMargin(0.15)
+    gPad.SetTopMargin(0.05)
+    masshisto.Draw()
+    masshisto.GetYaxis().SetTitle("arbitrary units")
+    masshisto.GetXaxis().SetTitle("m_{MMDT} [GeV]")
+    masshisto.GetYaxis().SetTitleOffset(1.8)
+    masshisto.GetXaxis().SetTitleOffset(1.3)
+    masshisto.SetLineColor(1)
+    masshisto.GetYaxis().SetRangeUser(0,masshisto.GetMaximum()*1.2)
 
-masshistog.SetLineColor(4)
-masshistog.SetLineStyle(3)
-masshistog.Draw("same")
+    masshistoq.SetLineColor(2)
+    masshistoq.SetLineStyle(3)
+    masshistoq.Draw("same")
 
-masshisto_built.SetLineColor(1)
-masshisto_built.SetMarkerStyle(20)
-masshisto_built.SetMarkerSize(1)
-masshisto_built.Scale(masshisto.Integral()/masshisto_built.Integral())
-masshisto_built.Draw("samep")
+    masshistog.SetLineColor(4)
+    masshistog.SetLineStyle(3)
+    masshistog.Draw("same")
 
-leg = TLegend(.5,.4,.85,.7)
-leg.SetBorderSize(0)
-leg.SetFillColor(0)
-leg.SetFillStyle(0)
-leg.SetTextFont(42)
-leg.SetTextSize(0.035)
-leg.AddEntry(masshisto,"Total","L")
-leg.AddEntry(masshistoq,"quarks","L")
-leg.AddEntry(masshistog,"gluons","L")
-leg.AddEntry(masshisto_built,"from templates","ep")
-leg.Draw()
+    masshisto_built.SetLineColor(1)
+    masshisto_built.SetMarkerStyle(20)
+    masshisto_built.SetMarkerSize(1)
+    masshisto_built.Scale(masshisto.Integral()/masshisto_built.Integral())
+    masshisto_built.Draw("samep")
 
-myText(0.2,0.9,"#scale[1.5]{#bf{Pythia 8.226 QCD dijets}}")
+    masshistoq_built.SetLineColor(2)
+    masshistoq_built.SetLineStyle(3)
+    masshistoq_built.SetMarkerColor(2)
+    masshistoq_built.SetMarkerStyle(20)
+    masshistoq_built.SetMarkerSize(1)
+    masshistoq_built.Scale(masshistoq.Integral()/masshistoq_built.Integral())
+    masshistoq_built.Draw("samep")
 
-c.Print("masshisto.pdf")
+    masshistog_built.SetLineColor(2)
+    masshistog_built.SetLineStyle(3)
+    masshistog_built.SetMarkerColor(4)
+    masshistog_built.SetMarkerStyle(20)
+    masshistog_built.SetMarkerSize(1)
+    masshistog_built.Scale(masshistog.Integral()/masshistog_built.Integral())
+    masshistog_built.Draw("samep")
 
-pThisto.Draw()
-c.Print("pTspectrum.pdf")
+
+    leg = TLegend(.45, .4, .85, .7)
+    leg.SetBorderSize(0)
+    leg.SetFillColor(0)
+    leg.SetFillStyle(0)
+    leg.SetTextFont(42)
+    leg.SetTextSize(0.035)
+    leg.AddEntry(masshisto,"Total","L")
+    leg.AddEntry(masshistoq,"quarks","L")
+    leg.AddEntry(masshistog,"gluons","L")
+    leg.AddEntry(masshisto_built,"from templates, total","ep")
+    leg.AddEntry(masshistoq_built,"from templates, quarks","ep")
+    leg.AddEntry(masshistog_built,"from templates, gluons","ep")
+    leg.Draw()
+
+    myText(0.2,0.9,"#scale[1.5]{#bf{Pythia 8.226 QCD dijets}}")
+
+    c.Print("masshisto_%s.pdf" % suffix)
+
+    pThisto.Draw()
+    c.Print("pTspectrum_%s.pdf" % suffix)
+
+output(masshisto, masshistoq, masshistog, masshisto_built, masshistoq_built, masshistog_built, pThisto, "leading")
+output(masshisto2, masshistoq2, masshistog2, masshisto_built2, masshistoq_built2, masshistog_built2, pThisto2, "subleading")
