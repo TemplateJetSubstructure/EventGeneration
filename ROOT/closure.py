@@ -30,6 +30,9 @@ pThisto2 = TH1F("","",20,500,1000)
 pThistoq = TH1F("","",20,500,1000)
 pThistog = TH1F("","",20,500,1000)
 
+etahisto = TH1F("","",20,-5,5)
+etahisto2 = TH1F("","",20,-5,5)
+
 masshisto = TH1D("","",20,0,300)
 masshistoq = TH1D("","",20,0,300)
 masshistog = TH1D("","",20,0,300)
@@ -58,6 +61,7 @@ for i in range(mytree.GetEntries()):
     mytree.GetEntry(i)
     if (mytree.NJetsFilledSmallR > 0):
         pThisto.Fill(mytree.JsmallPt[0])
+        etahisto.Fill(mytree.JsmallEta[0])
         masshisto.Fill(mytree.JsmallM[0])
         if (mytree.Jsmalltype[0]==21):
             masshistog.Fill(mytree.JsmallM[0])
@@ -71,6 +75,7 @@ for i in range(mytree.GetEntries()):
         pass
     if (mytree.NJetsFilledSmallR > 1):
         pThisto2.Fill(mytree.JsmallPt[1])
+        etahisto2.Fill(mytree.JsmallEta[1])
         masshisto2.Fill(mytree.JsmallM[1])
         if (mytree.Jsmalltype[1]==21):
             masshistog2.Fill(mytree.JsmallM[1])
@@ -98,7 +103,7 @@ for i in range(mytree.GetEntries()):
             fillrandom(templates_q, mytree.JsmallPt[1], masshisto_built2, masshistoq_built2)
     pass
 
-def output(masshisto, masshistoq, masshistog, masshisto_built, masshistoq_built, masshistog_built, pThisto, suffix):
+def output(masshisto, masshistoq, masshistog, masshisto_built, masshistoq_built, masshistog_built, pThisto, etahisto, suffix):
     c = TCanvas("a","a",500,500)
     gStyle.SetOptStat(0)
     gPad.SetLeftMargin(0.15)
@@ -163,5 +168,8 @@ def output(masshisto, masshistoq, masshistog, masshisto_built, masshistoq_built,
     pThisto.Draw()
     c.Print("pTspectrum_%s.pdf" % suffix)
 
-output(masshisto, masshistoq, masshistog, masshisto_built, masshistoq_built, masshistog_built, pThisto, "leading")
-output(masshisto2, masshistoq2, masshistog2, masshisto_built2, masshistoq_built2, masshistog_built2, pThisto2, "subleading")
+    etahisto.Draw()
+    c.Print("eta_%s.pdf" % suffix)
+
+output(masshisto, masshistoq, masshistog, masshisto_built, masshistoq_built, masshistog_built, pThisto, etahisto, "leading")
+output(masshisto2, masshistoq2, masshistog2, masshisto_built2, masshistoq_built2, masshistog_built2, pThisto2, etahisto2, "subleading")
