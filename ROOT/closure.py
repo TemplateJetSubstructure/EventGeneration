@@ -54,11 +54,14 @@ for i in range(0,22):
     templates_q[i] = TH1D("","",20,0,300)
     templates_g[i] = TH1D("","",20,0,300)
 
+invalid = 0
 for i in range(mytree.GetEntries()):
     mytree.GetEntry(i)
-    if (mytree.NJetsFilledSmallR > 0):
+    if (mytree.NJetsFilledSmallR > 1 and (mytree.JsmallPt[0] / mytree.JsmallPt[1] - 1) < .2):  # Note: pt0 > pt1
         pThisto.Fill(mytree.JsmallPt[0])
         masshisto.Fill(mytree.JsmallM[0])
+        pThisto2.Fill(mytree.JsmallPt[1])
+        masshisto2.Fill(mytree.JsmallM[1])
         if (mytree.Jsmalltype[0]==21):
             masshistog.Fill(mytree.JsmallM[0])
             template_g.Fill(mytree.JsmallPt[0],mytree.JsmallM[0])
@@ -67,16 +70,14 @@ for i in range(mytree.GetEntries()):
             masshistoq.Fill(mytree.JsmallM[0])
             template_q.Fill(mytree.JsmallPt[0],mytree.JsmallM[0])
             templates_q[pThisto.GetXaxis().FindBin(mytree.JsmallPt[0])].Fill(mytree.JsmallM[0])
-            pass
-        pass
-    if (mytree.NJetsFilledSmallR > 1):
-        pThisto2.Fill(mytree.JsmallPt[1])
-        masshisto2.Fill(mytree.JsmallM[1])
         if (mytree.Jsmalltype[1]==21):
             masshistog2.Fill(mytree.JsmallM[1])
         else:
             masshistoq2.Fill(mytree.JsmallM[1])
-    pass
+    else:
+        invalid += 1
+print invalid
+print mytree.GetEntries()
 
 nreps = 5
 def fillrandom(templ, pT, *histos):
@@ -86,17 +87,15 @@ def fillrandom(templ, pT, *histos):
             h.Fill(random_mass)
 for i in range(mytree.GetEntries()):
     mytree.GetEntry(i)
-    if (mytree.NJetsFilledSmallR > 0):
+    if (mytree.NJetsFilledSmallR > 1 and (mytree.JsmallPt[0] / mytree.JsmallPt[1] - 1) < .2):
         if (mytree.Jsmalltype[0]==21):
             fillrandom(templates_g, mytree.JsmallPt[0], masshisto_built, masshistog_built)
         else:
             fillrandom(templates_q, mytree.JsmallPt[0], masshisto_built, masshistoq_built)
-    if (mytree.NJetsFilledSmallR > 1):
         if (mytree.Jsmalltype[1]==21):
             fillrandom(templates_g, mytree.JsmallPt[1], masshisto_built2, masshistog_built2)
         else:
             fillrandom(templates_q, mytree.JsmallPt[1], masshisto_built2, masshistoq_built2)
-    pass
 
 def output(masshisto, masshistoq, masshistog, masshisto_built, masshistoq_built, masshistog_built, pThisto, suffix):
     c = TCanvas("a","a",500,500)
@@ -158,10 +157,10 @@ def output(masshisto, masshistoq, masshistog, masshisto_built, masshistoq_built,
 
     myText(0.2,0.9,"#scale[1.5]{#bf{Pythia 8.226 QCD dijets}}")
 
-    c.Print("masshisto_%s.pdf" % suffix)
+    c.Print("balanced_pt_masshisto_%s.pdf" % suffix)
 
     pThisto.Draw()
-    c.Print("pTspectrum_%s.pdf" % suffix)
+    c.Print("balanced_pt_pTspectrum_%s.pdf" % suffix)
 
 output(masshisto, masshistoq, masshistog, masshisto_built, masshistoq_built, masshistog_built, pThisto, "leading")
 output(masshisto2, masshistoq2, masshistog2, masshisto_built2, masshistoq_built2, masshistog_built2, pThisto2, "subleading")
