@@ -103,8 +103,8 @@ for i in range(mytree.GetEntries()):
             fillrandom(templates_q, mytree.JsmallPt[1], masshisto_built2, masshistoq_built2)
     pass
 
+c = TCanvas("a","a",500,500)
 def output(masshisto, masshistoq, masshistog, masshisto_built, masshistoq_built, masshistog_built, pThisto, etahisto, suffix):
-    c = TCanvas("a","a",500,500)
     gStyle.SetOptStat(0)
     gPad.SetLeftMargin(0.15)
     gPad.SetTopMargin(0.05)
@@ -165,11 +165,21 @@ def output(masshisto, masshistoq, masshistog, masshisto_built, masshistoq_built,
 
     c.Print("masshisto_%s.pdf" % suffix)
 
-    pThisto.Draw()
-    c.Print("pTspectrum_%s.pdf" % suffix)
+pThisto.SetLineColor(2)
+pThisto.Scale(1.0/pThisto.Integral())
+pThisto.Draw()
+pThisto2.SetLineColor(4)
+pThisto2.Scale(1.0/pThisto2.Integral())
+pThisto2.Draw("same")
+c.Print("pTspectrum.pdf")
 
-    etahisto.Draw()
-    c.Print("eta_%s.pdf" % suffix)
+etahisto.SetLineColor(2)
+etahisto.Scale(1.0/etahisto.Integral())
+etahisto.Draw()
+etahisto2.SetLineColor(4)
+etahisto2.Scale(1.0/etahisto2.Integral())
+etahisto2.Draw("same")
+c.Print("eta.pdf")
 
 output(masshisto, masshistoq, masshistog, masshisto_built, masshistoq_built, masshistog_built, pThisto, etahisto, "leading")
 output(masshisto2, masshistoq2, masshistog2, masshisto_built2, masshistoq_built2, masshistog_built2, pThisto2, etahisto2, "subleading")
