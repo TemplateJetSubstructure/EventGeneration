@@ -51,12 +51,12 @@ eta_pT_histo = TH2F("", "", 20, 500, 1000, 20, -4, 4)
 eta_pT_histo2 = TH2F("", "",  20, 500, 1000, 20, -4, 4)
 
 templ_jetstr = '({})'.format(args.template)
-masshisto = TH1D("","Template jet mass {};m (MeV);".format(templ_jetstr),20,0,300)
+masshisto = TH1D("","Template jet mass {}".format(templ_jetstr),20,0,300)
 masshistoq = TH1D("","",20,0,300)
 masshistog = TH1D("","",20,0,300)
 
 test_jetstr = '(random)' if args.template == 'random' else '(lead)' if args.template == 'subl' else '(subl)'
-masshisto2 = TH1D("","Test jet mass {};m (MeV)".format(test_jetstr),20,0,300)
+masshisto2 = TH1D("","Test jet mass {}".format(test_jetstr),20,0,300)
 masshistoq2 = TH1D("","",20,0,300)
 masshistog2 = TH1D("","",20,0,300)
 
@@ -94,13 +94,6 @@ def fill_histos(i, evt):
     template_jet_i = index_for_template_jet(i)
     test_jet_i = index_for_test_jet(i)
 
-    if evt.NJetsFilledSmallR > test_jet_i:
-        masshisto2_qg = masshistog2 if evt.Jsmalltype[test_jet_i] == 21 else masshistoq2
-        masshisto2.Fill(mytree.JsmallM[test_jet_i])
-        masshisto2_qg.Fill(mytree.JsmallM[test_jet_i])
-        pThisto2.Fill(mytree.JsmallPt[test_jet_i])
-        etahisto2.Fill(mytree.JsmallEta[test_jet_i])
-        eta_pT_histo.Fill(mytree.JsmallPt[test_jet_i], mytree.JsmallEta[test_jet_i])
     if evt.NJetsFilledSmallR > template_jet_i:
         masshisto_qg = masshistog if evt.Jsmalltype[template_jet_i] == 21 else masshistoq
         masshisto.Fill(mytree.JsmallM[template_jet_i])
@@ -108,6 +101,13 @@ def fill_histos(i, evt):
         pThisto.Fill(mytree.JsmallPt[template_jet_i])
         etahisto.Fill(mytree.JsmallEta[template_jet_i])
         eta_pT_histo2.Fill(mytree.JsmallPt[template_jet_i], mytree.JsmallEta[template_jet_i])
+    if evt.NJetsFilledSmallR > test_jet_i:
+        masshisto2_qg = masshistog2 if evt.Jsmalltype[test_jet_i] == 21 else masshistoq2
+        masshisto2.Fill(mytree.JsmallM[test_jet_i])
+        masshisto2_qg.Fill(mytree.JsmallM[test_jet_i])
+        pThisto2.Fill(mytree.JsmallPt[test_jet_i])
+        etahisto2.Fill(mytree.JsmallEta[test_jet_i])
+        eta_pT_histo.Fill(mytree.JsmallPt[test_jet_i], mytree.JsmallEta[test_jet_i])
 
 for i in range(min(args.limit or mytree.GetEntries(), mytree.GetEntries())):
     mytree.GetEntry(i)
@@ -116,14 +116,14 @@ for i in range(min(args.limit or mytree.GetEntries(), mytree.GetEntries())):
         fill_histos(i, mytree)
 
 nreps = 5
-def fillrandom(templ, pT, *histos):
+def fillrandom(templ, pT, histos, weight=1):
     """
     Fill the histos with the same @nreps random values drawn from the template in @templ corresponding to @pT
     """
     for _ in range(nreps):
         random_mass = templ[pThisto.GetXaxis().FindBin(pT)].GetRandom()
         for h in histos:
-            h.Fill(random_mass)
+            h.Fill(random_mass, weight)
 
 for i in range(min(args.limit or mytree.GetEntries(), mytree.GetEntries())):
     mytree.GetEntry(i)
@@ -133,16 +133,18 @@ for i in range(min(args.limit or mytree.GetEntries(), mytree.GetEntries())):
 
         # the template jet always exists, or we would've skipped the event
         if mytree.Jsmalltype[template_jet_i] == 21:
-            fillrandom(templates_g, mytree.JsmallPt[template_jet_i], masshisto_built, masshistog_built)
+            fillrandom(templates_g, mytree.JsmallPt[template_jet_i], [masshisto_built, masshistog_built])
         else:
-            fillrandom(templates_q, mytree.JsmallPt[template_jet_i], masshisto_built, masshistoq_built)
+            fillrandom(templates_q, mytree.JsmallPt[template_jet_i], [masshisto_built, masshistoq_built])
 
         # The test jet may not exist
         if mytree.NJetsFilledSmallR > test_jet_i:
+            binx, biny = eta_pT_histo.GetXaxis().FindBin(mytree.JsmallPt[test_jet_i]), eta_pT_histo.GetYaxis().FindBin(mytree.JsmallEta[test_jet_i])
+            weight = eta_pT_histo.GetBinContent(binx, biny) / eta_pT_histo2.GetBinContent(binx, biny)
             if mytree.Jsmalltype[test_jet_i] == 21:
-                fillrandom(templates_g, mytree.JsmallPt[test_jet_i], masshisto_built2, masshistog_built2)
+                fillrandom(templates_g, mytree.JsmallPt[test_jet_i], [masshisto_built2, masshistog_built2], weight=weight)
             else:
-                fillrandom(templates_q, mytree.JsmallPt[test_jet_i], masshisto_built2, masshistoq_built2)
+                fillrandom(templates_q, mytree.JsmallPt[test_jet_i], [masshisto_built2, masshistoq_built2], weight=weight)
 
 
 c = TCanvas("a","a",500,500)
@@ -237,6 +239,5 @@ c.Print("eta_pT_diff (templ = {}).pdf".format(args.template))
 
 output(masshisto, masshistoq, masshistog, masshisto_built, masshistoq_built, masshistog_built, pThisto, etahisto, "template {}".format(templ_jetstr))
 output(masshisto2, masshistoq2, masshistog2, masshisto_built2, masshistoq_built2, masshistog_built2, pThisto2, etahisto2, "test {}".format(test_jetstr))
-
 
 
